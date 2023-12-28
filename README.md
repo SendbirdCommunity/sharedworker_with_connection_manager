@@ -2,6 +2,15 @@
 
 Service runs a very simple version of Sendbird SDK v4 in a Shared worker.
 
+- Provides comprehensive messaging example between tabs the shared worker and back in the context of Sendbird connectivity.
+- Maintains a single connection to Sendbird in the SharedWorker regardless of tabs opened.
+- Makes certain to disconnect when all tabs are closed.
+- Handles changes in tab visibility including setting background state when no target tabs are visible.
+- Handles rapid tab switching by not disconnecting during tab switch over.
+- Handles duplicate tab events by not disconnecting during tab creation.
+- Applies Sendbird’s own Connection Handler which also messages to all target tabs changes in the Sendbird connection, both during tab visibility changes and independently of tab visibility.
+- Provides videos outlining the concepts.
+
 ## Getting Started
 
 Add modules
