@@ -1,0 +1,24 @@
+{
+  "name": "testing-jasons-app-v4-local-cache",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "start": "parcel index.html --open",
+    "buid_shared_worker": "parcel build ./sharedWorker.js --dist-dir ./worker",
+    "build": "parcel build index.html",
+    "build_worker": "rollup -c"
+  },
+  "dependencies": {
+    "@sendbird/chat": "4.10.6",
+    "@sentry/browser": "5.23.0",
+    "moment": "^2.29.4"
+  },
+  "devDependencies": {
+    "@babel/core": "7.2.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "rollup": "^4.9.1",
+    "parcel": "^2.10.3"
+  },
+  "keywords": []
+}

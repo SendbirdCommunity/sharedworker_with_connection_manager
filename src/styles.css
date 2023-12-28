@@ -1,0 +1,10 @@
+body {
+  font-family: sans-serif;
+}
+
+.message_search {
+  background: black;
+  display: inline;
+  padding: 2px;
+  border-radius: 5px;
+}
