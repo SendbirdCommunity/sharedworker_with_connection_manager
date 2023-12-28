@@ -13,8 +13,6 @@ npm install
 Build web page using Parcel (hot reload)
 
 ```bash
-
-```bash
 npm run build
 ```
 
