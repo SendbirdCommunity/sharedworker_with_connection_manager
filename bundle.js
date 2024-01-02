@@ -7,15 +7,12 @@
     //main thread port from the browser. Gets set in onconnect
     let { SendbirdChat, GroupChannelModule, GroupChannelHandler, ConnectionHandler } = Sendbird;
 
-    const appId = "73B15A69-B61D-4159-99E0-B2BE8C6CEBA6";
-    const userId = "user_1";
+    const appId = "YOUR_APP_ID";
+    const userId = "YOUR_USER_ID";
     const userToken = "";
     let sb = null;
     const connectedTabs = [];
     const tabVisibility = {};
-
-
-
 
     //onconnect Comes with the ShardWorker API
     onconnect = function(e) {
@@ -64,7 +61,6 @@
         message.remainingTabs = connectedTabs.length;
         message.visibleTabCount = visibleTabCount;
         message.connection = { error: false, status: sb.connectionState, message: 'AFTER TAB VISIBILITY CHANGE' };
-        console.log(message);
         return message;
     }
 
@@ -73,7 +69,7 @@
     }
 
     async function checkAndHandleAllTabsHidden() {
-        // Wait a bit to see if a tab comes back into view
+        // Wait a short while to see if a tab comes back into view handles switching tabs quickly.
         await new Promise(resolve => setTimeout(resolve, 2000));
         if (countVisibleTabs() === 0) {
             console.log("No visible tabs. Disconnecting");
@@ -84,16 +80,13 @@
 
 
     function broadcastMessage(message) {
-
         connectedTabs.forEach(port => {
             port.postMessage(message);
         });
     }
 
     function removeClosedTab(port) {
-
         connectedTabs.length === 1 && sb.disconnect();
-
         console.log("SENDBIRD CONNECTION STATE IS NOW: ", sb.connectionState);
         console.log(`${connectedTabs.length} connected tabs`);
         const index = connectedTabs.indexOf(port);

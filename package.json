@@ -5,8 +5,6 @@
   "type": "module",
   "scripts": {
     "start": "parcel index.html --open",
-    "buid_shared_worker": "parcel build ./sharedWorker.js --dist-dir ./worker",
-    "build": "parcel build index.html",
     "build_worker": "rollup -c"
   },
   "dependencies": {

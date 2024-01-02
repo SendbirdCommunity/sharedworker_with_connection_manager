@@ -10,7 +10,6 @@ const displayTabId = (tabId) => {
     tabIdElement.innerText = tabId;
 }
 
-
 if (!!window.SharedWorker) {
     try {
         const scriptURL = new URL('../bundle.js', import.meta.url);

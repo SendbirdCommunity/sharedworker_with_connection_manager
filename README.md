@@ -1,6 +1,6 @@
 # Sendbird in a Shared Worker Example
 
-Service runs a very simple version of Sendbird SDK v4 in a Shared worker.
+Service runs a very simple version of Sendbird Core SDK v4 in a Shared worker. This service does not work with Sendbird's UIKit.
 
 - Provides comprehensive messaging example between tabs the shared worker and back in the context of Sendbird connectivity.
 - Maintains a single connection to Sendbird in the SharedWorker regardless of tabs opened.
@@ -10,6 +10,7 @@ Service runs a very simple version of Sendbird SDK v4 in a Shared worker.
 - Handles duplicate tab events by not disconnecting during tab creation.
 - Applies Sendbird’s own Connection Handler which also messages to all target tabs changes in the Sendbird connection, both during tab visibility changes and independently of tab visibility.
 - Provides videos outlining the concepts.
+
 
 ## Getting Started
 
