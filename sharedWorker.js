@@ -1,3 +1,5 @@
+
+
 //This is example of a function called from a different file
 import { myFunction } from './example.js';
 //Sendbird code is cut and pasted from github
@@ -8,7 +10,7 @@ import {Sendbird} from "./sendbirdchat.min.js";
 let { SendbirdChat, GroupChannelModule, GroupChannelHandler, ConnectionHandler } = Sendbird
 
 const appId = "YOUR_APP_ID";
-const userId = "YOUR_USER_ID";
+const userId = "user1";
 const userToken = "";
 let sb = null;
 
@@ -32,7 +34,7 @@ onconnect = function(e) {
                 case "new_tab_opened":
                     tabVisibility[event.data.tabId] = true;
                     message = {...message, ...initSendbird()};
-                    message.connection = await connectToSendbird();
+                    message.connection = await evaluateConnectionToSendbird();
                     break;
                 case "tab_closed":
                     removeClosedTab(port);
@@ -79,7 +81,6 @@ async function checkAndHandleAllTabsHidden() {
     await new Promise(resolve => setTimeout(resolve, 2000));
     if (countVisibleTabs() === 0) {
         console.log("No visible tabs. Disconnecting");
-        // sb.disconnect();
         sb.setBackgroundState();
     }
 }
@@ -101,15 +102,14 @@ function removeClosedTab(port) {
     }
 }
 
-async function connectToSendbird() {
+async function evaluateConnectionToSendbird() {
     console.log(sb.connectionState);
-    if (!sb.currentUser) {
+    if (sb.connectionState !== 'OPEN' && !sb.currentUser) {
         try {
             await sb.connect(userId, userToken);
             console.log(sb.connectionState)
             return { error: false, status: sb.connectionState, message: `JUST NOW` };
         } catch (error) {
-
             throw error;
         }
     }

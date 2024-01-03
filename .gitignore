@@ -2,3 +2,4 @@
 Dist
 node_modules
 Package-lock.json
+.env
