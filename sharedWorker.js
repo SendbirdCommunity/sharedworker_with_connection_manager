@@ -9,7 +9,7 @@ import {Sendbird} from "./sendbirdchat.min.js";
 //main thread port from the browser. Gets set in onconnect
 let { SendbirdChat, GroupChannelModule, GroupChannelHandler, ConnectionHandler } = Sendbird
 
-const appId = "YOUR_APP_ID";
+const appId = "73B15A69-B61D-4159-99E0-B2BE8C6CEBA6";
 const userId = "user1";
 const userToken = "";
 let sb = null;

@@ -31,12 +31,6 @@ if (!!window.SharedWorker) {
     console.warn('Your browser does not support Shared Workers.');
 }
 
-function initializeSharedWorker(scriptPath) {
-    const scriptURL = new URL(scriptPath, import.meta.url);
-    scriptURL.search = '';
-    return new SharedWorker(scriptURL.toString(), 'sharedWorker');
-}
-
 function handleWorkerMessages(e) {
     const messageType = e.data.type;
     switch (messageType) {
