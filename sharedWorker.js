@@ -2,7 +2,7 @@
 
 //This is example of a function called from a different file
 import { myFunction } from './example.js';
-//Sendbird code is cut and pasted from github
+//Sendbird SDK code is cut and pasted from github
 //https://raw.githubusercontent.com/sendbird/sendbird-chat-sdk-javascript/main/sendbird.min.js
 //In the copied code add "export" in front of  var Sendbird
 import {Sendbird} from "./sendbirdchat.min.js";
@@ -28,112 +28,85 @@ onconnect = function(e) {
     connectedTabs.push(port);
 
     port.onmessage = async function (event) {
-        let message = {type: event.data.type, tab_id: event.data.tabId};
+        let tabDetails = {type: event.data.type, tab_id: event.data.tabId};
+        let replyMessage = { ...tabDetails    };
         try {
+            replyMessage.sendbird  = evaluateSendbirdInitialization();
             switch (event.data.type) {
                 case "new_tab_opened":
                     tabVisibility[event.data.tabId] = true;
-                    message = {...message, ...initSendbird()};
-                    message.connection = await evaluateConnectionToSendbird();
+                    const connectionEvaluationResult =  await evaluateConnectionToSendbird()
+                    replyMessage.connection =  { status: sb.connectionState, message: connectionEvaluationResult }
                     break;
                 case "tab_closed":
                     removeClosedTab(port);
-                    message.remainingTabs = connectedTabs.length;
-                    message.connection = {error: false, status: sb.connectionState, message: 'AFTER TAB CLOSED'};
+                    replyMessage.connection =  { status: sb.connectionState, message: 'AFTER TAB CLOSED' };
                     break;
                 case "tab_hidden":
                     tabVisibility[event.data.tabId] = false;
-                    message = await handleTabVisibilityChange(message, false);
+                    await handleTabVisibilityChange(false);
+                    replyMessage.connection = { status: sb.connectionState, message: 'AFTER TAB VISIBILITY CHANGE' };
                     break;
                 case "tab_visible":
                     tabVisibility[event.data.tabId] = true;
-                    sb.setForegroundState();
-                    message = await handleTabVisibilityChange(message, true);
+                    await handleTabVisibilityChange(true);
+                    replyMessage.connection = { status: sb.connectionState, message: 'AFTER TAB VISIBILITY CHANGE' };
                     break;
                 default:
                     console.log("SW: Fallback", event.data);
                     return;
             }
-            broadcastMessage(message);
+            replyMessage.tabCount = connectedTabs.length
+            broadcastMessage(replyMessage);
         } catch (error) {
             handleErrorMessage(error, event.data.type);
         }
     };
 }
 
-async function handleTabVisibilityChange(message, isVisible) {
-    const visibleTabCount = countVisibleTabs();
-    if (!isVisible && visibleTabCount === 0) {
-        await checkAndHandleAllTabsHidden();
+async function handleTabVisibilityChange(isVisible) {
+    await new Promise(r => setTimeout(r, 1000));
+    if (!isVisible && !countVisibleTabs()) {
+        sb.setBackgroundState();
+    } else {
+        sb.setForegroundState();
     }
-    message.remainingTabs = connectedTabs.length;
-    message.visibleTabCount = visibleTabCount;
-    message.connection = { error: false, status: sb.connectionState, message: 'AFTER TAB VISIBILITY CHANGE' };
-    return message;
 }
 
 function countVisibleTabs() {
     return Object.keys(tabVisibility).filter(tabId => tabVisibility[tabId]).length;
 }
 
-async function checkAndHandleAllTabsHidden() {
-    // Wait a short while to see if a tab comes back into view handles switching tabs quickly.
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    if (countVisibleTabs() === 0) {
-        console.log("No visible tabs. Disconnecting");
-        sb.setBackgroundState();
-    }
-}
-
-
 function broadcastMessage(message) {
-    connectedTabs.forEach(port => {
-        port.postMessage(message);
-    });
+    connectedTabs.forEach(port => port.postMessage(message));
 }
 
 function removeClosedTab(port) {
-    connectedTabs.length === 1 && sb.disconnect();
-    console.log("SENDBIRD CONNECTION STATE IS NOW: ", sb.connectionState);
-    console.log(`${connectedTabs.length} connected tabs`);
-    const index = connectedTabs.indexOf(port);
-    if (index > -1) {
-        connectedTabs.splice(index, 1);
-    }
+    if (connectedTabs.length === 1) sb.disconnect();
+    const i = connectedTabs.indexOf(port);
+    if (i > -1) connectedTabs.splice(i, 1);
 }
 
 async function evaluateConnectionToSendbird() {
-    console.log(sb.connectionState);
     if (sb.connectionState !== 'OPEN' && !sb.currentUser) {
-        try {
-            await sb.connect(userId, userToken);
-            console.log(sb.connectionState)
-            return { error: false, status: sb.connectionState, message: `JUST NOW` };
-        } catch (error) {
-            throw error;
-        }
+        await sb.connect(userId, userToken);
+        return 'CONNECTED JUST NOW';
     }
-    return { error: false, status: sb.connectionState, message: `ALREADY` };
+    return 'ALREADY';
 }
-
-function initSendbird() {
+//Initialization
+function evaluateSendbirdInitialization() {
     if (!sb) {
-        try {
-
-            sb = SendbirdChat.init({
-                appId,
-                modules: [new GroupChannelModule()],
-                localCacheEnabled: true,
-                appStateToggleEnabled: false
-
-            });
-            sb.addConnectionHandler('connectionHandler', connectionHandler);
-            return { error: false, message: "NEW_INIT" };
-        } catch (error) {
-            throw error;
-        }
+        sb = SendbirdChat.init({
+            appId,
+            modules: [new GroupChannelModule()],
+            localCacheEnabled: true,
+            appStateToggleEnabled: false
+        });
+        sb.addConnectionHandler('connectionHandler', connectionHandler);
+        return { message: "NEW_INIT" };
     }
-    return { error: false, message: `ALREADY_INITIALIZED. ${connectedTabs.length} tabs open` };
+    return { message: "ALREADY_INITIALIZED." };
 }
 
 function handleErrorMessage(error, type) {
@@ -142,32 +115,27 @@ function handleErrorMessage(error, type) {
         message: error.message || "Unknown Error",
         is_connected_to_sendbird: false
     };
-    broadcastMessage({ type: `${type}_ack`, message });
+    broadcastMessage({ type: `${type}_error`, message });
 }
 
 
-const connectionHandler = new ConnectionHandler({
-    onConnected: () => {
-        console.log("Connected");
-        broadcastMessage({ type: "connection_handler", message: { error: false, status: sb.connectionState, message: 'CONNECTED' } });
-    },
-    onDisconnected: () => {
-        console.log("Disconnected");
-        broadcastMessage({ type: "connection_handler", message: { error: false, status: sb.connectionState, message: 'DISCONNECTED' } });
-    },
-    onReconnectStarted: () => {
-        console.log("Reconnect Started");
-        broadcastMessage({ type: "connection_handler", message: { error: false, status: sb.connectionState, message: 'RECONNECT STARTED' } });
-    },
-    onReconnectSucceeded: () => {
-        console.log("Reconnect Succeeded");
-        broadcastMessage({ type: "connection_handler", message: { error: false, status: sb.connectionState, message: 'RECONNECT SUCCEEDED' } });
-    },
-    onReconnectFailed: () => {
-        console.log("Reconnect Failed");
-        broadcastMessage({ type: "connection_handler", message: { error: false, status: sb.connectionState, message: 'RECONNECT FAILED' } });
-    }
-});
+const handlerActions = {
+    onConnected: 'CONNECTED',
+    onDisconnected: 'DISCONNECTED',
+    onReconnectStarted: 'RECONNECT STARTED',
+    onReconnectSucceeded: 'RECONNECT SUCCEEDED',
+    onReconnectFailed: 'RECONNECT FAILED'
+};
+
+const connectionHandler = new ConnectionHandler(
+    Object.fromEntries(
+        Object.entries(handlerActions).map(([event, message]) => [
+            event, () => {
+                broadcastMessage({ type: "connection_handler", message: { error: false, status: sb.connectionState, message } });
+            }
+        ])
+    )
+);
 
 
 
