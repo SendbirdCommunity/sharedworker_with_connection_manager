@@ -65,7 +65,7 @@ onconnect = function(e) {
 }
 
 async function handleTabVisibilityChange(isVisible) {
-    await new Promise(r => setTimeout(r, 1000));
+    if(!isVisible) await new Promise(r => setTimeout(r, 2000));
     if (!isVisible && !countVisibleTabs()) {
         sb.setBackgroundState();
     } else {
@@ -82,7 +82,10 @@ function broadcastMessage(message) {
 }
 
 function removeClosedTab(port, tabDetails) {
-    if (connectedTabs.length === 1) sb.disconnect();
+    if (connectedTabs.length === 1) {
+        console.log("SW: Closing last tab. Disconnecting from Sendbird.");
+        sb.disconnect();
+    }
     delete tabVisibility[tabDetails.tab_id];
     const i = connectedTabs.indexOf(port);
     if (i > -1) connectedTabs.splice(i, 1);
