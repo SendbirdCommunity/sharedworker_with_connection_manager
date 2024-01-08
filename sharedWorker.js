@@ -39,7 +39,7 @@ onconnect = function(e) {
                     replyMessage.connection =  { status: sb.connectionState, message: connectionEvaluationResult }
                     break;
                 case "tab_closed":
-                    removeClosedTab(port);
+                    removeClosedTab(port, tabDetails);
                     replyMessage.connection =  { status: sb.connectionState, message: 'AFTER TAB CLOSED' };
                     break;
                 case "tab_hidden":
@@ -81,8 +81,9 @@ function broadcastMessage(message) {
     connectedTabs.forEach(port => port.postMessage(message));
 }
 
-function removeClosedTab(port) {
+function removeClosedTab(port, tabDetails) {
     if (connectedTabs.length === 1) sb.disconnect();
+    delete tabVisibility[tabDetails.tab_id];
     const i = connectedTabs.indexOf(port);
     if (i > -1) connectedTabs.splice(i, 1);
 }
